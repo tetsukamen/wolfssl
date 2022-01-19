@@ -95,7 +95,7 @@ static const char *wolfsentry_config_path = NULL;
     #define TEST_STR_TERM
 #endif
 
-static const char kHelloMsg[] = "hello wolfssl!" TEST_STR_TERM;
+static const char kHelloMsg[] = "hello wolfssl tetsuya!" TEST_STR_TERM;
 #ifndef NO_SESSION_CACHE
 static const char kResumeMsg[] = "resuming wolfssl!" TEST_STR_TERM;
 #endif
@@ -106,7 +106,7 @@ static const char kResumeMsg[] = "resuming wolfssl!" TEST_STR_TERM;
 static const char kHttpGetMsg[] = "GET /index.html HTTP/1.0\r\n\r\n";
 
 /* Write needs to be largest of the above strings (29) */
-#define CLI_MSG_SZ      32
+#define CLI_MSG_SZ      256
 /* Read needs to be at least sizeof server.c `webServerMsg` (226) */
 #define CLI_REPLY_SZ    256
 
@@ -1748,7 +1748,7 @@ static void Usage(void)
 #endif
 }
 
-THREAD_RETURN WOLFSSL_THREAD client_test(void* args)
+THREAD_RETURN WOLFSSL_THREAD client_test(void* args, char* response, char* sendData, int sendDataSize)
 {
     SOCKET_T sockfd = WOLFSSL_SOCKET_INVALID;
 
@@ -3864,6 +3864,9 @@ THREAD_RETURN WOLFSSL_THREAD client_test(void* args)
     else {
         msgSz = (int)XSTRLEN(kHelloMsg);
         XMEMCPY(msg, kHelloMsg, msgSz);
+        // 上書き
+        msgSz = sendDataSize;
+        XMEMCPY(msg, sendData, msgSz);
     }
 
 /* allow some time for exporting the session */
@@ -3885,6 +3888,7 @@ THREAD_RETURN WOLFSSL_THREAD client_test(void* args)
     }
 
     err = ClientRead(ssl, reply, sizeof(reply)-1, 1, "", exitWithRet);
+    memcpy(response,reply,sizeof(reply));
     if (exitWithRet && (err != 0)) {
         ((func_args*)args)->return_code = err;
         wolfSSL_free(ssl); ssl = NULL;
@@ -4236,7 +4240,12 @@ exit:
 #ifdef HAVE_STACK_SIZE
         StackSizeCheck(&args, client_test);
 #else
-        client_test(&args);
+
+        char response[CLI_REPLY_SZ];
+        char sendData[CLI_MSG_SZ] = "this is sendData";
+        client_test(&args, response, sendData, sizeof(sendData));
+        printf("message: %s\n",response);
+
 #endif
 #else
         printf("Client not compiled in!\n");

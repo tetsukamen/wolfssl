@@ -539,7 +539,9 @@ static int execute_test_case(int svr_argc, char** svr_argv,
     }
 
     /* start client */
-    client_test(&cliArgs);
+    char response[256];
+    char sendData[256];
+    client_test(&cliArgs, response, sendData, sizeof(sendData));
 
     /* verify results */
     if ((cliArgs.return_code != 0 && cliTestShouldFail == 0) ||

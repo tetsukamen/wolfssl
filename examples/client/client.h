@@ -24,7 +24,7 @@
 #define WOLFSSL_CLIENT_H
 
 
-THREAD_RETURN WOLFSSL_THREAD client_test(void* args);
+THREAD_RETURN WOLFSSL_THREAD client_test(void* args, char* response, char* sendData, int sendDataSize);
 
 
 #endif /* WOLFSSL_CLIENT_H */

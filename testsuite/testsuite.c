@@ -387,7 +387,9 @@ static void simple_test(func_args* args)
     cliArgs.argc = 1;
 #endif
 
-    client_test(&cliArgs);
+    char response[256];
+    char sendData[256];
+    client_test(&cliArgs, response, sendData, sizeof(sendData));
     if (cliArgs.return_code != 0) {
         args->return_code = cliArgs.return_code;
     #ifdef HAVE_STACK_SIZE
