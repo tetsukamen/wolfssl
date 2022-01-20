@@ -5365,7 +5365,22 @@ exit:
 
 
         char response[SRV_READ_SZ];
-        char sendData[SRV_READ_SZ] = "This is message from server.";
+        char sendData[SRV_READ_SZ];
+        // 送信メッセージ作成
+        uint8_t sendDataUint8[SRV_READ_SZ];
+        for(int i=0;i<10;i++){
+            sendDataUint8[i] = 65+i;
+        }
+        for(size_t i=0;sendDataUint8[i]!='\0';i++){
+            printf("%#x ",sendDataUint8[i]);
+        }
+        // 送信メッセージをchar型に変換
+        for(int i=0;i<10;i++){
+            sendData[i] = (char)(sendDataUint8[i]-128);
+        }
+        sendData[10] = '\0';
+
+        printf("\n");
         server_test2(&args, response, sendData, sizeof(sendData));
         printf("response:%s\n",response);
 

@@ -4243,8 +4243,16 @@ exit:
 
         char response[CLI_REPLY_SZ];
         char sendData[CLI_MSG_SZ] = "this is sendData";
+        uint8_t responseUint8[CLI_REPLY_SZ];
         client_test(&args, response, sendData, sizeof(sendData));
-        printf("message: %s\n",response);
+
+        // charからuint8_tに変換して出力
+        printf("message:");
+        for(int i=0;response[i]!='\0';i++){
+            responseUint8[i] = (uint8_t)(response[i]+128);
+            printf("%#x ",responseUint8[i]);
+        }
+        printf("\n");
 
 #endif
 #else
