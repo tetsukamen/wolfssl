@@ -23,6 +23,12 @@
  * https://github.com/wolfSSL/wolfssl-examples/tree/master/tls
  */
 
+#include "examples/client/libcoap.h"
+#define SERVER_IP "127.0.0.1"
+#define SERVER_PORT 8080
+#define CLIENT_IP "127.0.0.1"
+#define CLIENT_PORT 8081
+
 #ifdef HAVE_CONFIG_H
         #include <config.h>
 #endif
@@ -4241,18 +4247,39 @@ exit:
         StackSizeCheck(&args, client_test);
 #else
 
+        // 変数宣言
         char response[CLI_REPLY_SZ];
-        char sendData[CLI_MSG_SZ] = "this is sendData";
+        char sendData[CLI_MSG_SZ];
+        int i;
+        uint8_t packet[BUFF_SIZE];
+        int packetSize;
         uint8_t responseUint8[CLI_REPLY_SZ];
-        client_test(&args, response, sendData, sizeof(sendData));
 
-        // charからuint8_tに変換して出力
-        printf("message:");
-        for(int i=0;response[i]!='\0';i++){
-            responseUint8[i] = (uint8_t)(response[i]+128);
-            printf("%#x ",responseUint8[i]);
+        // 送信データの作成
+        createCoapPacket("GET /data\n", sizeof("GET /data\n"), packet, &packetSize, 0x1);
+
+        // 送信メッセージをchar型に変換
+        for(i=0;packet[i]!=0xa;i++){
+            sendData[i] = (char)(packet[i]-128);
         }
-        printf("\n");
+        sendData[i] = (char)(packet[i]-128);
+
+        for(int j=0;j<3;j++){
+            // 送受信
+            client_test(&args, response, sendData, sizeof(sendData));
+
+            // 受け取ったデータをcharからuint8_tに変換して出力
+            printf("from server:");
+            for(i=0;i<CLI_REPLY_SZ;i++){
+                responseUint8[i] = (uint8_t)(response[i]+128);
+                printf("%#x ",responseUint8[i]);
+                if(responseUint8[i]==0xa){
+                    break;
+                }
+            }
+            printf("\n");
+        }
+
 
 #endif
 #else

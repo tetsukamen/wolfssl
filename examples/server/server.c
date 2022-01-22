@@ -23,6 +23,8 @@
  * https://github.com/wolfSSL/wolfssl-examples/tree/master/tls
  */
 
+#include "examples/client/libcoap.h"
+
 #ifdef HAVE_CONFIG_H
     #include <config.h>
 #endif
@@ -5363,26 +5365,39 @@ exit:
         StackSizeCheck(&args, server_test);
 #else
 
-
+        // 変数定義
         char response[SRV_READ_SZ];
         char sendData[SRV_READ_SZ];
-        // 送信メッセージ作成
-        uint8_t sendDataUint8[SRV_READ_SZ];
-        for(int i=0;i<10;i++){
-            sendDataUint8[i] = 65+i;
-        }
-        for(size_t i=0;sendDataUint8[i]!='\0';i++){
-            printf("%#x ",sendDataUint8[i]);
-        }
-        // 送信メッセージをchar型に変換
-        for(int i=0;i<10;i++){
-            sendData[i] = (char)(sendDataUint8[i]-128);
-        }
-        sendData[10] = '\0';
+        uint8_t responseUint8[SRV_READ_SZ];
+        uint8_t packet[BUFF_SIZE];
+        int packetSize;
+        int i;
 
-        printf("\n");
-        server_test2(&args, response, sendData, sizeof(sendData));
-        printf("response:%s\n",response);
+        // 送信メッセージ作成
+        createCoapPacket("sensor-data-000112345\n", sizeof("sensor-data-000112345\n"), packet, &packetSize, 0x0);
+
+        // 送信メッセージをchar型に変換
+        for(i=0;packet[i]!=0xa;i++){
+            sendData[i] = (char)(packet[i]-128);
+        }
+        sendData[i] = (char)(packet[i]-128);
+
+        while(1){
+            // 送受信
+            server_test2(&args, response, sendData, sizeof(sendData));
+
+            // 受け取ったデータをcharからuint8_tに変換して出力
+            printf("from client:");
+            for( i=0;i<SRV_READ_SZ;i++){
+                responseUint8[i] = (uint8_t)(response[i]+128);
+                printf("%#x ",responseUint8[i]);
+                if(responseUint8[i]==0xa){
+                    break;
+                }
+            }
+            printf("\n");
+        }
+
 
 
 #endif
