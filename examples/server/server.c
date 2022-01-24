@@ -5364,11 +5364,12 @@ exit:
 #ifdef HAVE_STACK_SIZE
         StackSizeCheck(&args, server_test);
 #else
+        printf("PID: %d\n", getpid());
 
         // 変数定義
         char response[SRV_READ_SZ];
         char sendData[SRV_READ_SZ];
-        uint8_t responseUint8[SRV_READ_SZ];
+        // uint8_t responseUint8[SRV_READ_SZ];
         uint8_t packet[BUFF_SIZE];
         int packetSize;
         int i;
@@ -5387,15 +5388,15 @@ exit:
             server_test2(&args, response, sendData, sizeof(sendData));
 
             // 受け取ったデータをcharからuint8_tに変換して出力
-            printf("from client:");
-            for( i=0;i<SRV_READ_SZ;i++){
-                responseUint8[i] = (uint8_t)(response[i]+128);
-                printf("%#x ",responseUint8[i]);
-                if(responseUint8[i]==0xa){
-                    break;
-                }
-            }
-            printf("\n");
+            // printf("from client:");
+            // for( i=0;i<SRV_READ_SZ;i++){
+            //     responseUint8[i] = (uint8_t)(response[i]+128);
+            //     printf("%#x ",responseUint8[i]);
+            //     if(responseUint8[i]==0xa){
+            //         break;
+            //     }
+            // }
+            // printf("\n");
         }
 
 

@@ -24,10 +24,9 @@
  */
 
 #include "examples/client/libcoap.h"
-#define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 8080
-#define CLIENT_IP "127.0.0.1"
-#define CLIENT_PORT 8081
+#include <time.h>
+#include <sys/resource.h>
+#include <unistd.h>
 
 #ifdef HAVE_CONFIG_H
         #include <config.h>
@@ -1780,7 +1779,7 @@ THREAD_RETURN WOLFSSL_THREAD client_test(void* args, char* response, char* sendD
 
     word16 port   = wolfSSLPort;
     char* host   = (char*)wolfSSLIP;
-    const char* domain = "localhost";  /* can't default to www.wolfssl.com
+    const char* domain = "127.0.0.1";  /* can't default to www.wolfssl.com
                                           because can't tell if we're really
                                           going there to detect old chacha-poly
                                        */
@@ -4253,7 +4252,8 @@ exit:
         int i;
         uint8_t packet[BUFF_SIZE];
         int packetSize;
-        uint8_t responseUint8[CLI_REPLY_SZ];
+        // uint8_t responseUint8[CLI_REPLY_SZ];
+        struct rusage usage;
 
         // 送信データの作成
         createCoapPacket("GET /data\n", sizeof("GET /data\n"), packet, &packetSize, 0x1);
@@ -4264,21 +4264,29 @@ exit:
         }
         sendData[i] = (char)(packet[i]-128);
 
-        for(int j=0;j<3;j++){
+        for(int j=0;j<100;j++){
             // 送受信
             client_test(&args, response, sendData, sizeof(sendData));
 
             // 受け取ったデータをcharからuint8_tに変換して出力
-            printf("from server:");
-            for(i=0;i<CLI_REPLY_SZ;i++){
-                responseUint8[i] = (uint8_t)(response[i]+128);
-                printf("%#x ",responseUint8[i]);
-                if(responseUint8[i]==0xa){
-                    break;
-                }
-            }
-            printf("\n");
+            // printf("from server:");
+            // for(i=0;i<CLI_REPLY_SZ;i++){
+            //     responseUint8[i] = (uint8_t)(response[i]+128);
+            //     printf("%#x ",responseUint8[i]);
+            //     if(responseUint8[i]==0xa){
+            //         break;
+            //     }
+            // }
+            // printf("\n");
         }
+
+        printf("PID: %d\n", getpid());
+
+        long cpu_time = clock();
+        printf("cpu time: %ld\n", cpu_time);
+
+        getrusage(RUSAGE_SELF, &usage);
+        printf("maxrss: %ld\n", usage.ru_maxrss);
 
 
 #endif
