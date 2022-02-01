@@ -24,6 +24,7 @@
  */
 
 #include "examples/client/libcoap.h"
+#include <sys/resource.h>
 
 #ifdef HAVE_CONFIG_H
     #include <config.h>
@@ -5106,6 +5107,27 @@ THREAD_RETURN WOLFSSL_THREAD server_test2(void* args, char* response, char* send
         }
 #endif
 
+        // リソース消費の計測
+        struct rusage usage;
+
+        long cpu_time = clock();
+        printf("cpu time: %ld\n", cpu_time);
+
+        getrusage(RUSAGE_SELF, &usage);
+        printf("maxrss: %ld\n", usage.ru_maxrss);
+
+         // ファイル書き込み
+        FILE *fp;
+        // cpu時間
+        fp = fopen("eval_cpu.txt", "a");
+        fprintf(fp, "%ld\n", cpu_time);
+        fclose(fp);
+        // 最大メモリ使用量
+        fp = fopen("eval_maxrss.txt", "a");
+        fprintf(fp, "%ld\n", usage.ru_maxrss);
+        fclose(fp);
+
+
         if (echoData == 0 && throughput == 0) {
             ServerRead(ssl, input, sizeof(input)-1);
             memcpy(response, input, sizeof(input));
@@ -5383,7 +5405,7 @@ exit:
         }
         sendData[i] = (char)(packet[i]-128);
 
-        while(1){
+        // while(1){
             // 送受信
             server_test2(&args, response, sendData, sizeof(sendData));
 
@@ -5397,7 +5419,7 @@ exit:
             //     }
             // }
             // printf("\n");
-        }
+        // }
 
 
 

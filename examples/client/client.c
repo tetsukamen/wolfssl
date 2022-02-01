@@ -4264,7 +4264,7 @@ exit:
         }
         sendData[i] = (char)(packet[i]-128);
 
-        for(int j=0;j<100;j++){
+        // for(int j=0;j<100;j++){
             // 送受信
             client_test(&args, response, sendData, sizeof(sendData));
 
@@ -4278,7 +4278,7 @@ exit:
             //     }
             // }
             // printf("\n");
-        }
+        // }
 
         printf("PID: %d\n", getpid());
 
