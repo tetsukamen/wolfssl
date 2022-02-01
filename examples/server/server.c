@@ -5108,24 +5108,33 @@ THREAD_RETURN WOLFSSL_THREAD server_test2(void* args, char* response, char* send
 #endif
 
         // リソース消費の計測
-        struct rusage usage;
+        FILE *fp;
 
+        // cpu時間
         long cpu_time = clock();
         printf("cpu time: %ld\n", cpu_time);
-
-        getrusage(RUSAGE_SELF, &usage);
-        printf("maxrss: %ld\n", usage.ru_maxrss);
-
-         // ファイル書き込み
-        FILE *fp;
-        // cpu時間
         fp = fopen("eval_cpu.txt", "a");
         fprintf(fp, "%ld\n", cpu_time);
         fclose(fp);
+    
         // 最大メモリ使用量
-        fp = fopen("eval_maxrss.txt", "a");
-        fprintf(fp, "%ld\n", usage.ru_maxrss);
-        fclose(fp);
+          char command[128];
+          char output[128];
+          int vmhwm;
+          char str[128];
+          sprintf(command, "grep VmHWM /proc/%d/status", getpid());
+          if ((fp = popen(command, "r")) == NULL) {
+            /*Failure*/
+            return 0;
+          }
+          while (fgets(output, 128, fp) != NULL) {
+            //具体的な数値を取得する場合は、sscanf等で読み出し
+            sscanf(output,"%s %d",str,&vmhwm);
+          }
+          printf("vmhwm: %d\n",vmhwm);
+          fp = fopen("eval_vmhwm.txt", "a");
+          fprintf(fp, "%d\n", vmhwm);
+          fclose(fp);
 
 
         if (echoData == 0 && throughput == 0) {
@@ -5234,9 +5243,10 @@ THREAD_RETURN WOLFSSL_THREAD server_test2(void* args, char* response, char* send
             ServerWrite(ssl, write_msg, write_msg_sz);
 
 #ifdef WOLFSSL_TLS13
-            if (updateKeysIVs || postHandAuth)
+            if (updateKeysIVs || postHandAuth){
                 ServerRead(ssl, input, sizeof(input)-1);
-                memcpy(response, input, sizeof(input));
+            }
+            memcpy(response, input, sizeof(input));
 #endif
         }
         else if (err == 0 || err == WOLFSSL_ERROR_ZERO_RETURN) {
